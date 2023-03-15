@@ -76,8 +76,10 @@ type IBObjectManager interface {
 	GetUpgradeStatus(statusType string) ([]UpgradeStatus, error)
 	GetAllMembers() ([]Member, error)
 	GetGridInfo() ([]Grid, error)
+	GetGridInfoWithFields(fields []string) ([]Grid, error)
 	GetGridLicense() ([]License, error)
 	ReleaseIP(netview string, cidr string, ipAddr string, isIPv6 bool, macAddr string) (string, error)
+	UpdateGridSecurity(ref string, sec SecuritySetting) (*Grid, error)
 	UpdateAAAARecord(ref string, netView string, recordName string, cidr string, ipAddr string, useTtl bool, ttl uint32, comment string, setEas EA) (*RecordAAAA, error)
 	UpdateCNAMERecord(ref string, canonical string, recordName string, useTtl bool, ttl uint32, comment string, setEas EA) (*RecordCNAME, error)
 	UpdateFixedAddress(fixedAddrRef string, netview string, name string, cidr string, ipAddr string, matchclient string, macOrDuid string, comment string, eas EA) (*FixedAddress, error)
@@ -203,6 +205,26 @@ func (objMgr *ObjectManager) GetGridInfo() ([]Grid, error) {
 	err := objMgr.connector.GetObject(
 		gridObj, "", NewQueryParams(false, nil), &res)
 	return res, err
+}
+
+// GetGridInfoWithFields returns the details for grid with specified fields
+func (objMgr *ObjectManager) GetGridInfoWithFields(fields []string) ([]Grid, error) {
+	var res []Grid
+
+	gridObj := NewGridWithFields(Grid{}, fields)
+	err := objMgr.connector.GetObject(
+		gridObj, "", NewQueryParams(false, nil), &res)
+	return res, err
+}
+
+func (objMgr *ObjectManager) UpdateGridSecurity(ref string, sec SecuritySetting) (*Grid, error) {
+	gridObj := NewGridWithFields(Grid{
+		Ref:             ref,
+		SecuritySetting: &sec,
+	}, []string{"security_setting"})
+	refRes, err := objMgr.connector.UpdateObject(gridObj, ref)
+	gridObj.Ref = refRes
+	return gridObj, err
 }
 
 // CreateZoneAuth creates zones and subs by passing fqdn

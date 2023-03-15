@@ -151,6 +151,7 @@ type NetworkSetting struct {
 	UseDscp    bool   `json:"use_dscp,omiempty"`
 	VlanId     uint   `json:"vlan_id,omitempty"`
 }
+
 type Ipv6Setting struct {
 	AutoRouterConfigEnabled bool   `json:"auto_router_config_enabled"`
 	CidrPrefix              uint   `json:"cidr_prefix,omitempty"`
@@ -280,17 +281,78 @@ type NTPSetting struct {
 	NTPServers []NTPserver            `json:"ntp_servers,omitempty"`
 }
 
+// `json:"security_setting,omitempty"`
+type SecuritySetting struct {
+	// TODO probably missing several items - struct was formed via vanilla
+	// setup
+	AdminAccessItems []struct {
+		Struct     string `json:"_struct,omitempty"`
+		Address    string `json:"address,omitempty"`
+		Permission string `json:"permission,omitempty"`
+	} `json:"admin_access_items,omitempty"`
+	AuditLogRollingEnable    bool `json:"audit_log_rolling_enable"`
+	DisableConcurrentLogin   bool `json:"disable_concurrent_login"`
+	HTTPRedirectEnable       bool `json:"http_redirect_enable"`
+	InactivityLockoutSetting struct {
+		AccountInactivityLockoutEnable   bool `json:"account_inactivity_lockout_enable"`
+		InactiveDays                     int  `json:"inactive_days"`
+		ReactivateViaRemoteConsoleEnable bool `json:"reactivate_via_remote_console_enable"`
+		ReactivateViaSerialConsoleEnable bool `json:"reactivate_via_serial_console_enable"`
+		ReminderDays                     int  `json:"reminder_days"`
+	} `json:"inactivity_lockout_setting"`
+	LcdInputEnable                    bool   `json:"lcd_input_enable"`
+	LoginBannerEnable                 bool   `json:"login_banner_enable"`
+	LoginBannerText                   string `json:"login_banner_text"`
+	RemoteConsoleAccessEnable         bool   `json:"remote_console_access_enable"`
+	SecurityAccessEnable              bool   `json:"security_access_enable"`
+	SecurityAccessRemoteConsoleEnable bool   `json:"security_access_remote_console_enable"`
+	SessionTimeout                    int    `json:"session_timeout"`
+	// Field is not writable: ssh_perm_enable
+	// SSHPermEnable                     bool   `json:"ssh_perm_enable"`
+	SupportAccessEnable bool   `json:"support_access_enable"`
+	SupportAccessInfo   string `json:"support_access_info"`
+}
+
+// `json:"snmp_setting,omitempty"`
+type SnmpSetting struct {
+	EngineID               []string `json:"engine_id,omitempty"`
+	QueriesCommunityString string   `json:"queries_community_string,omitempty"`
+	QueriesEnable          bool     `json:"queries_enable,omitempty"`
+	Snmpv3QueriesEnable    bool     `json:"snmpv3_queries_enable,omitempty"`
+	Snmpv3TrapsEnable      bool     `json:"snmpv3_traps_enable,omitempty"`
+	Syscontact             []string `json:"syscontact,omitempty"`
+	Sysdescr               []string `json:"sysdescr,omitempty"`
+	Syslocation            []string `json:"syslocation,omitempty"`
+	Sysname                []string `json:"sysname,omitempty"`
+	TrapReceivers          []struct {
+		Address string `json:"address,omitempty"`
+		// TODO missing snmpv3 user and comment fields
+	} `json:"trap_receivers,omitempty"`
+	TrapsCommunityString string `json:"traps_community_string,omitempty"`
+	TrapsEnable          bool   `json:"traps_enable,omitempty"`
+}
+
 type Grid struct {
-	IBBase     `json:"-"`
-	Ref        string      `json:"_ref,omitempty"`
-	Name       string      `json:"name,omitempty"`
-	NTPSetting *NTPSetting `json:"ntp_setting,omitempty"`
+	IBBase          `json:"-"`
+	Ref             string           `json:"_ref,omitempty"`
+	Name            string           `json:"name,omitempty"`
+	NTPSetting      *NTPSetting      `json:"ntp_setting,omitempty"`
+	SecuritySetting *SecuritySetting `json:"security_setting,omitempty"`
+	SnmpSetting     *SnmpSetting     `json:"snmp_setting,omitempty"`
 }
 
 func NewGrid(grid Grid) *Grid {
 	result := grid
 	result.objectType = "grid"
 	returnFields := []string{"name", "ntp_setting"}
+	result.returnFields = returnFields
+	return &result
+}
+
+func NewGridWithFields(grid Grid, fields []string) *Grid {
+	result := grid
+	result.objectType = "grid"
+	returnFields := fields
 	result.returnFields = returnFields
 	return &result
 }
